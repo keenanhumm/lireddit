@@ -1,0 +1,13 @@
+{
+  "extends": [
+    "tslint:recommended"   
+  ],
+  "jsRules": {},
+  "rules": {
+    "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
+    "semicolon": [true, "always"],
+    "no-trailing-whitespace": true,
+    "whitespace": [true, "check-module", "check-branch", "check-operator", "check-rest-spread","check-preblock", "check-postbrace"]
+  },
+  "rulesDirectory": []
+}

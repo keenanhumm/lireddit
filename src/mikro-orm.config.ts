@@ -1,4 +1,4 @@
-import { __prod__ } from "./constants";
+import { isProd } from "./constants";
 import { Post } from "./entities/Post";
 import { MikroORM } from '@mikro-orm/core';
 import path from 'path';
@@ -11,6 +11,6 @@ export default {
   user: 'keenanhumm',
   entities: [Post],
   dbName: 'lireddit',
-  debug: !__prod__,
-  type: 'postgresql'
+  debug: !isProd,
+  type: 'postgresql',
 } as Parameters<typeof MikroORM.init>[0];
