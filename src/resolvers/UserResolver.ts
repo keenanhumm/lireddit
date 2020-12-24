@@ -1,15 +1,26 @@
 import { User } from '../entities/User';
 import { MyContext } from '../types';
-import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
+import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
 import argon2 from 'argon2';
 import UserCredentials from '../models/UserCredentials';
 import UserResponse from '../models/UserResponse';
 
 @Resolver()
 export class UserResolver {
+  @Query(() => User, { nullable: true })
+  async me(
+    @Ctx() { em, req }: MyContext,
+  ): Promise<User | null> {
+    const { session: { userId: id }} = req;
+    // caller is not logged in
+    if (!id) return null;
+
+    return await em.findOne(User, { id });
+  }
+
   @Mutation(() => UserResponse)
   async register(
-    @Ctx() { em }: MyContext,
+    @Ctx() { em, req }: MyContext,
     @Arg('credentials') { username, password }: UserCredentials,
   ): Promise<UserResponse> {
     // input validation
@@ -58,6 +69,8 @@ export class UserResolver {
       }
     }
 
+    req.session.userId = user.id;
+
     return {
       user,
     };
@@ -65,7 +78,7 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async login(
-    @Ctx() { em }: MyContext,
+    @Ctx() { em, req }: MyContext,
     @Arg('credentials') { username, password }: UserCredentials,
   ): Promise<UserResponse> {
     const user = await em.findOne(User, {
@@ -96,6 +109,8 @@ export class UserResolver {
         ],
       };
     }
+
+    req.session.userId = user.id;
 
     return {
       user,
