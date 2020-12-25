@@ -5,6 +5,7 @@ import argon2 from "argon2";
 import UserCredentials from "../models/UserCredentials";
 import UserResponse from "../models/UserResponse";
 import { EntityManager } from "@mikro-orm/postgresql";
+import { COOKIE_KEY } from "../constants";
 
 @Resolver()
 export class UserResolver {
@@ -122,5 +123,16 @@ export class UserResolver {
     return {
       user,
     };
+  }
+
+  @Mutation(() => Boolean)
+  logout(
+    @Ctx() { req, res }: MyContext,
+  ){
+    return new Promise(resolve => req.session.destroy(err => {
+      res.clearCookie(COOKIE_KEY);
+      resolve(!err);
+      return;
+    }));
   }
 }
