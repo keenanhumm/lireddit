@@ -1,6 +1,6 @@
 import { User } from '../entities/User';
 import { MyContext } from '../types';
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import argon2 from 'argon2';
 import UserCredentials from '../models/UserCredentials';
 import UserResponse from '../models/UserResponse';

@@ -64,11 +64,10 @@ const main = async () => {
     res.send('hello');
   });
   app.listen(4000, () => {
+    // tslint:disable-next-line:no-console
     console.log('server started on localhost:4000');
   });
 
 };
 
-main().catch(err => {
-  console.error({ err });
-});
+main();
