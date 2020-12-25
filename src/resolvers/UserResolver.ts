@@ -1,9 +1,10 @@
-import { User } from '../entities/User';
-import { MyContext } from '../types';
-import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
-import argon2 from 'argon2';
-import UserCredentials from '../models/UserCredentials';
-import UserResponse from '../models/UserResponse';
+import { User } from "../entities/User";
+import { MyContext } from "../types";
+import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import argon2 from "argon2";
+import UserCredentials from "../models/UserCredentials";
+import UserResponse from "../models/UserResponse";
+import { EntityManager } from "@mikro-orm/postgresql";
 
 @Resolver()
 export class UserResolver {
@@ -21,14 +22,14 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async register(
     @Ctx() { em, req }: MyContext,
-    @Arg('credentials') { username, password }: UserCredentials,
+    @Arg("credentials") { username, password }: UserCredentials,
   ): Promise<UserResponse> {
     // input validation
     if (username.length < 4) {
       return {
         errors: [
           {
-            field: 'username',
+            field: "username",
             message: "must be at least 4 characters long",
           },
         ],
@@ -38,7 +39,7 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: 'password',
+            field: "password",
             message: "must be at least 4 characters long",
           },
         ],
@@ -47,29 +48,35 @@ export class UserResolver {
     // hash pwd
     const hashedPwd = await argon2.hash(password);
 
-    // create user
-    const user = em.create(User, {
-      username,
-      password: hashedPwd,
-    });
+    let user;
+
     // persist user
     try {
-      await em.persistAndFlush(user);
-    } catch ({ code }) {
-      if (code === '23505') {
+      const result = await (em as EntityManager).createQueryBuilder(User).getKnexQuery().insert({
+        username,
+        password: hashedPwd,
+        created_at: new Date(),
+        updated_at: new Date(),
+      }).returning("*");
+
+      user = result.map(e => em.map(User, e))[0];
+    } catch ({ code, message }) {
+      if (code === "23505") {
         // user already exists
         return {
           errors: [
             {
-              field: 'username',
-              message: 'username already taken',
+              field: "username",
+              message: "username already taken",
             },
           ],
         };
       }
     }
 
-    req.session.userId = user.id;
+    if (user) {
+      req.session.userId = user.id;
+    }
 
     return {
       user,
@@ -79,7 +86,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async login(
     @Ctx() { em, req }: MyContext,
-    @Arg('credentials') { username, password }: UserCredentials,
+    @Arg("credentials") { username, password }: UserCredentials,
   ): Promise<UserResponse> {
     const user = await em.findOne(User, {
       username,

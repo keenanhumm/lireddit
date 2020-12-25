@@ -4,6 +4,7 @@
   ],
   "jsRules": {},
   "rules": {
+    "quotemark": [true, "double", "jsx-double"],
     "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
     "semicolon": [true, "always"],
     "no-trailing-whitespace": true,
