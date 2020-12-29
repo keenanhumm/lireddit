@@ -4,13 +4,14 @@ import mikroConfig from "./mikro-orm.config";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
-import { PostResolver } from "./resolvers/PostResolver";
 import { UserResolver } from "./resolvers/UserResolver";
 import redis from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import { COOKIE_KEY, isProd } from "./constants";
 import cors from "cors";
+import { UserAreaResolver } from "./resolvers/UserAreaResolver";
+import { PerformanceResolver } from "./resolvers/PerformanceResolver";
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConfig);
@@ -32,7 +33,7 @@ const main = async () => {
         disableTouch: true,
       }),
       cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 yrs,
+        maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year,
         httpOnly: true,
         secure: isProd, // using https for prod only
         sameSite: "lax",
@@ -46,7 +47,7 @@ const main = async () => {
   // configure and apply graphql middleware
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [PostResolver, UserResolver],
+      resolvers: [UserResolver, UserAreaResolver, PerformanceResolver],
       validate: false,
     }),
     context: ({ req, res }) => ({
@@ -60,9 +61,7 @@ const main = async () => {
     cors: false,
    });
 
-  app.get("/", (_req, res) => {
-    res.send("hello");
-  });
+  // start server
   app.listen(4000, () => {
     // tslint:disable-next-line:no-console
     console.log("server started on localhost:4000");
